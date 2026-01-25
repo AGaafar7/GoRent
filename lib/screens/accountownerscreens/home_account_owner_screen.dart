@@ -8,74 +8,72 @@ class AccountOwnerHome extends StatefulWidget {
 }
 
 class _AccountOwnerHomeState extends State<AccountOwnerHome> {
-  bool hasApps = false;
+  bool hasApps = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  _buildHeader(),
-                  const SizedBox(height: 24),
-                  _buildBalanceCard(),
-                  const SizedBox(height: 32),
-                  _buildAccountSelector(),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle("Apps"),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: hasApps ? _buildAppList() : _buildEmptyState(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+      backgroundColor: Colors.white, 
+      appBar: _buildProfessionalAppBar(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildMetricsCard(),
+            const SizedBox(height: 24),
+            _buildAccountSelector(),
+            const SizedBox(height: 32),
+            _buildSectionHeader("Active Portfolio"),
+            const SizedBox(height: 12),
+            hasApps ? _buildProfessionalAppList() : _buildEmptyState(),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Hi, Gaafar!",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F111A),  
-                letterSpacing: -0.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "Welcome back to your dashboard",
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
-            ),
-          ],
-        ),
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.blueAccent.withValues(alpha: 0.2),
-              width: 3,
+  PreferredSizeWidget _buildProfessionalAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: false,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Hi, Gaafar!",
+            style: TextStyle(
+              color: Color(0xFF1A1C1E),
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
             ),
           ),
-          child: const CircleAvatar(
-            radius: 30,
+          Text(
+            "Management Console",
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(
+            Icons.notifications_none_outlined,
+            color: Color(0xFF1A1C1E),
+          ),
+          onPressed: () {},
+        ),
+        const Padding(
+          padding: EdgeInsets.only(right: 16, left: 8),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: Color(0xFFF1F4F9),
             backgroundImage: NetworkImage('https://via.placeholder.com/150'),
           ),
         ),
@@ -83,27 +81,13 @@ class _AccountOwnerHomeState extends State<AccountOwnerHome> {
     );
   }
 
-  Widget _buildBalanceCard() {
+  Widget _buildMetricsCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color.fromARGB(255, 37, 37, 37),
-            Color.fromARGB(255, 0, 0, 0),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF3B7CFF).withValues(alpha: 0.35),
-            blurRadius: 25,
-            offset: const Offset(0, 12),
-          ),
-        ],
+        color: const Color(0xFF1A1C1E),  
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,159 +96,174 @@ class _AccountOwnerHomeState extends State<AccountOwnerHome> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "TOTAL BALANCE",
+                "TOTAL REVENUE",
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
+                  color: Colors.white.withOpacity(0.5),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 1.2,
                 ),
               ),
-              Icon(
-                Icons.sensors,
-                color: Colors.white.withValues(alpha: 0.5),
-                size: 20,
+              const Icon(
+                Icons.trending_up,
+                color: Colors.greenAccent,
+                size: 18,
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           const Text(
             "\$ 1,250.00",
             style: TextStyle(
               color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              "+ 12.5% this month",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccountSelector() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+          const SizedBox(height: 12),
+          Divider(color: Colors.white.withOpacity(0.1)),
+          const SizedBox(height: 12),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(
-                Icons.account_circle_outlined,
-                color: Colors.grey[400],
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                "Main Account",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
+              _metricItem("Apps", "12"),
+              _metricItem("Testers", "48"),
+              _metricItem("Avg. ROI", "14%"),
             ],
           ),
-          const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _metricItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F111A),
-          ),
+          label,
+          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
         ),
-        TextButton(
-          onPressed: () {},
-          child: const Text(
-            "See All",
-            style: TextStyle(color: Color(0xFF3B7CFF)),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAppList() {
+  Widget _buildAccountSelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.business_center_outlined,
+            size: 18,
+            color: Colors.blueAccent,
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              "Default Publishing Account",
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: Color(0xFF1A1C1E),
+              ),
+            ),
+          ),
+          const Icon(Icons.expand_more_rounded, size: 18, color: Colors.grey),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A1C1E),
+          ),
+        ),
+        const Icon(Icons.filter_list_rounded, size: 18, color: Colors.grey),
+      ],
+    );
+  }
+
+  Widget _buildProfessionalAppList() {
     return ListView.builder(
-      itemCount: 2,
-      padding: const EdgeInsets.only(bottom: 100), 
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 3,
       itemBuilder: (context, index) {
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F111A),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE0E0E0)),
           ),
           child: Row(
             children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color(0xFF1E2130),
-                child: Icon(Icons.app_shortcut, color: Colors.blueAccent),
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FE),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                ),
+                child: const Icon(
+                  Icons.inventory_2_outlined,
+                  color: Color(0xFF1A1C1E),
+                  size: 20,
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Finance Tracker Pro",
+                      "App Production Name",
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      "Running smoothly",
-                      style: TextStyle(
-                        color: Colors.greenAccent.withValues(alpha: 0.7),
-                        fontSize: 12,
-                      ),
-                    ),
+                    _statusBadge("Active"),
                   ],
                 ),
               ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white24,
-                size: 14,
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "\$42.00",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  Text(
+                    "Total Earned",
+                    style: TextStyle(color: Colors.grey, fontSize: 10),
+                  ),
+                ],
               ),
             ],
           ),
@@ -273,22 +272,32 @@ class _AccountOwnerHomeState extends State<AccountOwnerHome> {
     );
   }
 
+  Widget _statusBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text.toUpperCase(),
+        style: const TextStyle(
+          color: Colors.green,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.cloud_off_outlined, size: 64, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          const Text(
-            "No Apps Published",
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 80),
+        child: Text(
+          "No Assets Published",
+          style: TextStyle(color: Colors.grey),
+        ),
       ),
     );
   }
