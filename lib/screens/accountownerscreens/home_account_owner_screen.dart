@@ -98,7 +98,7 @@ class _AccountOwnerHomeState extends State<AccountOwnerHome> {
               Text(
                 "TOTAL REVENUE",
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha:0.5),
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.2,
@@ -121,7 +121,7 @@ class _AccountOwnerHomeState extends State<AccountOwnerHome> {
             ),
           ),
           const SizedBox(height: 12),
-          Divider(color: Colors.white.withOpacity(0.1)),
+          Divider(color: Colors.white.withValues(alpha:0.1)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -142,7 +142,7 @@ class _AccountOwnerHomeState extends State<AccountOwnerHome> {
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
+          style: TextStyle(color: Colors.white.withValues(alpha:0.5), fontSize: 11),
         ),
         const SizedBox(height: 4),
         Text(
@@ -276,7 +276,7 @@ class _AccountOwnerHomeState extends State<AccountOwnerHome> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
+        color: Colors.green.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
