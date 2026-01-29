@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:gorent/screens/accountownerscreens/home_account_owner_screen.dart';
+import 'package:gorent/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:gorent/screens/auth/auth_wrapper_screen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const AccountOwnerHome(),
+      home: const AuthWrapper(),
     );
   }
 }

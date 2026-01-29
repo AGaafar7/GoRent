@@ -2,12 +2,14 @@ class HostedApp {
   final String appId;
   final String appName;
   final String publisherEmail;
-  final String status; // e.g., "submitted"
+  final String accountEmail;
+  final String status;
 
   HostedApp({
     required this.appId,
     required this.appName,
     required this.publisherEmail,
+    required this.accountEmail,
     required this.status,
   });
 
@@ -16,30 +18,47 @@ class HostedApp {
       appId: map['appid'] ?? '',
       appName: map['appname'] ?? 'Unknown App',
       publisherEmail: map['publisheremail'] ?? '',
+      accountEmail: map['accountemail'] ?? '',
       status: map['status'] ?? 'pending',
     );
   }
 }
 
 class AccountOwnerModel {
-  final String googleName;
-  final String googleEmail;
-  final HostedApp? activeApp; // The new map you added
+  final String name;
+  final int phoneNumber;
+  final String userEmail;
+  final String userPassword;
+  final Map<String, dynamic> googleAccountDetails;
+  final HostedApp? activeApp;
+  final int moneyEarned;
 
   AccountOwnerModel({
-    required this.googleName,
-    required this.googleEmail,
+    required this.name,
+    required this.phoneNumber,
+    required this.userEmail,
+    required this.userPassword,
+    required this.googleAccountDetails,
     this.activeApp,
+    required this.moneyEarned,
   });
 
   factory AccountOwnerModel.fromFirestore(Map<String, dynamic> data) {
-    final googleDetails = data['googleaccount']?['accountdetails'] ?? {};
+    final details = data['googleaccount']?['accountdetails'] ?? {};
     
     return AccountOwnerModel(
-      googleName: googleDetails['name'] ?? 'Owner',
-      googleEmail: googleDetails['email'] ?? '',
-      // Only parse the app if the 'apps' map exists in Firestore
+      name: data['name'] ?? 'Owner',
+      phoneNumber: data['phonenumber'] ?? 0,
+      userEmail: data['useremail'] ?? '',
+      userPassword: data['userpassword'] ?? '',
+      
+      googleAccountDetails: {
+        'email': details['email'] ?? '',
+        'password': details['password'] ?? '',
+      },
+      
       activeApp: data['apps'] != null ? HostedApp.fromMap(data['apps']) : null,
+      moneyEarned: data['moneyearned'] ?? 0,
     );
   }
 }

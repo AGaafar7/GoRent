@@ -3,7 +3,7 @@ class PublisherModel {
   final String name;
   final String email;
   final String password;
-  final PublishedApp? app; // The nested 'apps' map
+  final PublishedApp? app;
 
   PublisherModel({
     required this.docId,
@@ -19,7 +19,6 @@ class PublisherModel {
       name: data['name'] ?? '',
       email: data['email'] ?? '',
       password: data['password'] ?? '',
-      // Parsing the nested map 'apps'
       app: data['apps'] != null 
           ? PublishedApp.fromMap(data['apps'] as Map<String, dynamic>) 
           : null,
@@ -31,7 +30,7 @@ class PublishedApp {
   final String appFileUrl;
   final int appId;
   final String appName;
-  final String publishedOnAccount; // Holds the Account Owner's email
+  final String publishedOnAccount; 
   final String status;
 
   PublishedApp({

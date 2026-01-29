@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:gorent/backend/firebase_services.dart';
+import 'package:gorent/backend/models/models.dart';
 import 'package:gorent/screens/testerscreens/explore_apps_screen.dart';
 
 class TesterDashboard extends StatefulWidget {
-  const TesterDashboard({super.key});
+  final String userId;
+  const TesterDashboard({super.key, required this.userId});
 
   @override
   State<TesterDashboard> createState() => _TesterDashboardState();
@@ -10,34 +13,62 @@ class TesterDashboard extends StatefulWidget {
 
 class _TesterDashboardState extends State<TesterDashboard> {
   int _currentIndex = 0;
-  bool hasApps = true;
+  final FirebaseService _firebaseService = FirebaseService();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white, 
-      appBar: _currentIndex == 0 ? _buildProfessionalAppBar() : null,
-      body: IndexedStack(
-     
-        index: _currentIndex,
-        children: [_buildHomeBody(), const ExploreAppsScreen()],
-      ),
-      bottomNavigationBar: _buildProfessionalNavBar(),
+    return StreamBuilder<TesterModel>(
+      stream: _firebaseService.streamTester(widget.userId),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Scaffold(body: Center(child: Text("Error loading dashboard")));
+        }
+        if (!snapshot.hasData) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
+        final tester = snapshot.data!;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: _currentIndex == 0 ? _buildProfessionalAppBar(tester) : null,
+          body: IndexedStack(
+            index: _currentIndex,
+            children: [
+              _buildHomeBody(tester),
+              ExploreAppsScreen(
+                userId: tester.docId,
+                userEmail: tester.email,
+              ),
+            ],
+          ),
+          bottomNavigationBar: _buildProfessionalNavBar(),
+        );
+      },
     );
   }
 
-  PreferredSizeWidget _buildProfessionalAppBar() {
+  PreferredSizeWidget _buildProfessionalAppBar(TesterModel tester) {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
       centerTitle: false,
-      title: const Text(
-        "Dashboard",
-        style: TextStyle(
-          color: Color(0xFF1A1C1E),
-          fontWeight: FontWeight.bold,
-          fontSize: 22,
-        ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Dashboard",
+            style: TextStyle(
+              color: Color(0xFF1A1C1E),
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+            ),
+          ),
+          Text(
+            "Welcome back, ${tester.name}",
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          ),
+        ],
       ),
       actions: [
         Padding(
@@ -45,22 +76,22 @@ class _TesterDashboardState extends State<TesterDashboard> {
           child: CircleAvatar(
             radius: 18,
             backgroundColor: Colors.grey[200],
-            backgroundImage: const NetworkImage(
-              'https://via.placeholder.com/150',
-            ),
+            child: const Icon(Icons.person, color: Color(0xFF1A1C1E), size: 20),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildHomeBody() {
+  Widget _buildHomeBody(TesterModel tester) {
+    final activeApp = tester.activeTest;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildBalanceSection(),
+          _buildBalanceSection(tester.moneyEarned),
           const SizedBox(height: 32),
           const Text(
             "Apps in Testing",
@@ -71,18 +102,20 @@ class _TesterDashboardState extends State<TesterDashboard> {
             ),
           ),
           const SizedBox(height: 12),
-          hasApps ? _buildProfessionalList() : _buildEmptyState(),
+          activeApp != null 
+              ? _buildProfessionalList(activeApp) 
+              : _buildEmptyState(),
         ],
       ),
     );
   }
 
-  Widget _buildBalanceSection() {
+  Widget _buildBalanceSection(int money) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F4F9),  
+        color: const Color(0xFFF1F4F9),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -96,9 +129,9 @@ class _TesterDashboardState extends State<TesterDashboard> {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            "\$ 1,250.00",
-            style: TextStyle(
+          Text(
+            "\$ ${money.toStringAsFixed(2)}",
+            style: const TextStyle(
               color: Color(0xFF1A1C1E),
               fontSize: 32,
               fontWeight: FontWeight.w800,
@@ -109,11 +142,22 @@ class _TesterDashboardState extends State<TesterDashboard> {
     );
   }
 
-  Widget _buildProfessionalList() {
+  Widget _buildProfessionalList(AppBeingTested app) {
+    String statusText;
+    Color statusColor;
+
+    if (app.numberOfDays == 0) {
+      statusText = "Awaiting Access";
+      statusColor = Colors.orange;
+    } else {
+      int remaining = 14 - app.numberOfDays;
+      statusText = remaining <= 0 ? "Testing Complete" : "$remaining Days Remaining";
+      statusColor = remaining <= 0 ? Colors.green : Colors.blueAccent;
+    }
+
     return Column(
       children: [
-        _workCard("App Name", "Awaiting Access", Colors.orange),
-        _workCard("Social Chat", "14 Days Remaining", Colors.blueAccent),
+        _workCard(app.appName, statusText, statusColor),
       ],
     );
   }
@@ -125,9 +169,14 @@ class _TesterDashboardState extends State<TesterDashboard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE0E0E0),
-        ),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha:0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Row(
         children: [
@@ -138,11 +187,7 @@ class _TesterDashboardState extends State<TesterDashboard> {
               color: const Color(0xFF1A1C1E),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
-              Icons.layers_outlined,
-              color: Colors.white,
-              size: 20,
-            ),
+            child: const Icon(Icons.layers_outlined, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -151,12 +196,19 @@ class _TesterDashboardState extends State<TesterDashboard> {
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             ),
           ),
-          Text(
-            status,
-            style: TextStyle(
-              color: statusColor,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha:0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              status,
+              style: TextStyle(
+                color: statusColor,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -176,10 +228,6 @@ class _TesterDashboardState extends State<TesterDashboard> {
         selectedItemColor: const Color(0xFF1A1C1E),
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_customize_outlined),
@@ -196,11 +244,22 @@ class _TesterDashboardState extends State<TesterDashboard> {
 
   Widget _buildEmptyState() {
     return Padding(
-      padding: const EdgeInsets.only(top: 100),
+      padding: const EdgeInsets.only(top: 60),
       child: Center(
-        child: Text(
-          "No data available",
-          style: TextStyle(color: Colors.grey[400], fontSize: 14),
+        child: Column(
+          children: [
+            Icon(Icons.auto_awesome_motion_outlined, size: 50, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              "No active tests",
+              style: TextStyle(color: Colors.grey[500], fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Go to Explore to find apps to test",
+              style: TextStyle(color: Colors.grey[400], fontSize: 13),
+            ),
+          ],
         ),
       ),
     );

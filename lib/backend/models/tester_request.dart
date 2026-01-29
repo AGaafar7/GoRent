@@ -3,7 +3,7 @@ class TesterRequestModel {
   final String appId;
   final String appName;
   final String status;
-  final String testerId; // This is the email of the tester
+  final String testerId;
 
   TesterRequestModel({
     required this.docId,
@@ -23,7 +23,6 @@ class TesterRequestModel {
     );
   }
 
-  // Useful for manual data entry or testing
   Map<String, dynamic> toMap() {
     return {
       'appid': appId,

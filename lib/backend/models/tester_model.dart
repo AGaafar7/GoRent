@@ -4,6 +4,7 @@ class TesterModel {
   final String email;
   final String password;
   final AppBeingTested? activeTest;
+  final int moneyEarned;
 
   TesterModel({
     required this.docId,
@@ -11,6 +12,7 @@ class TesterModel {
     required this.email,
     required this.password,
     this.activeTest,
+    required this.moneyEarned,
   });
 
   factory TesterModel.fromFirestore(String id, Map<String, dynamic> data) {
@@ -22,6 +24,7 @@ class TesterModel {
       activeTest: data['appsbeingtested'] != null 
           ? AppBeingTested.fromMap(data['appsbeingtested'] as Map<String, dynamic>) 
           : null,
+      moneyEarned: data['moneyearned'] ?? 0,
     );
   }
 }
@@ -30,8 +33,8 @@ class AppBeingTested {
   final String appId;
   final String appName;
   final String publisherEmail;
-  final String accountHoldingApp; // The Account Owner hosting the test
-  final int numberOfDays; // Progress of the 14-day test period
+  final String accountHoldingApp;
+  final int numberOfDays;
 
   AppBeingTested({
     required this.appId,

@@ -1,4 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:gorent/screens/accountownerscreens/home_account_owner_screen.dart';
+import 'package:gorent/screens/publisherscreens/publisher_screen.dart';
+import 'package:gorent/screens/testerscreens/tester_home_screen.dart';
 
 enum AuthTab { login, signup }
 
@@ -10,6 +14,11 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  bool _isLoading = false;
   
   AuthTab _activeTab = AuthTab.login;
 
@@ -17,6 +26,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
   String _selectedAccountType = 'Publisher';
   bool _rememberMe = false;
   bool _obscurePassword = true;
+  @override
+void dispose() {
+  _emailController.dispose();
+  _passwordController.dispose();
+  _nameController.dispose();
+  _phoneController.dispose();
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -153,10 +170,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _label("Email"),
-        _textField("Loisbecket@gmail.com"),
+        _textField("Loisbecket@gmail.com", controller: _emailController),
         const SizedBox(height: 20),
         _label("Password"),
-        _textField("*******", isPassword: true),
+        _textField("*******", isPassword: true, controller: _passwordController),
         _buildFooterOptions(),
         const SizedBox(height: 40),
         _submitButton("Log In"),
@@ -172,16 +189,16 @@ class _AuthWrapperState extends State<AuthWrapper> {
         _dropdown(),
         const SizedBox(height: 20),
         _label("Name"),
-        _textField("John Doe"),
+        _textField("John Doe", controller: _nameController),
         const SizedBox(height: 20),
         _label(
           _selectedAccountType == "Account Provider" ? "Google Gmail" : "Email",
         ),
-        _textField("Loisbecket@gmail.com"),
+        _textField("Loisbecket@gmail.com", controller: _emailController),
         if (_selectedAccountType == "Account Provider") ...[
           const SizedBox(height: 20),
           _label("Phone Number"),
-          _textField("+201273299508"),
+          _textField("+201273299508", controller: _phoneController),
         ],
         const SizedBox(height: 20),
         _label(
@@ -189,7 +206,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
               ? "Google Password"
               : "Password",
         ),
-        _textField("*******", isPassword: true),
+        _textField("*******", isPassword: true, controller: _passwordController),
         _buildFooterOptions(),
         const SizedBox(height: 40),
         _submitButton("Get Started"),
@@ -204,9 +221,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
     child: Text(text, style: const TextStyle(color: Colors.grey, fontSize: 14)),
   );
 
-  Widget _textField(String hint, {bool isPassword = false}) {
+  Widget _textField(String hint, {bool isPassword = false, TextEditingController? controller}) {
     return TextField(
       obscureText: isPassword && _obscurePassword,
+      controller: controller,
       decoration: InputDecoration(
         hintText: hint,
         suffixIcon: isPassword
@@ -288,7 +306,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () {},
+       onPressed: _isLoading ? null : () {
+  if (_activeTab == AuthTab.login) {
+    _handleLogin();
+  } else {
+    _handleRegister();
+  }
+},
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF3B7CFF),
           shape: RoundedRectangleBorder(
@@ -305,4 +329,135 @@ class _AuthWrapperState extends State<AuthWrapper> {
       ),
     );
   }
+
+ Future<void> _handleLogin() async {
+  setState(() => _isLoading = true);
+  String email = _emailController.text.trim();
+  String password = _passwordController.text.trim();
+
+  try {
+    var ownerDoc = await FirebaseFirestore.instance.collection('AccountOwner')
+        .where('useremail', isEqualTo: email)
+        .where('userpassword', isEqualTo: password)
+        .get();
+
+    if (ownerDoc.docs.isNotEmpty) {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AccountOwnerHome(userId: ownerDoc.docs.first.id))
+        );
+      }
+      return;
+    }
+
+    var pubDoc = await FirebaseFirestore.instance.collection('Publisher')
+        .where('email', isEqualTo: email)
+        .where('password', isEqualTo: password)
+        .get();
+
+    if (pubDoc.docs.isNotEmpty) {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => PublisherHome(userId: pubDoc.docs.first.id))
+        );
+      }
+      return;
+    }
+
+    var testDoc = await FirebaseFirestore.instance.collection('Tester')
+        .where('email', isEqualTo: email)
+        .where('password', isEqualTo: password)
+        .get();
+
+    if (testDoc.docs.isNotEmpty) {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => TesterDashboard(userId: testDoc.docs.first.id))
+        );
+      }
+      return;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Account not found. Please check credentials or register."))
+      );
+    }
+  } catch (e) {
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
+  }
+}
+
+Future<void> _handleRegister() async {
+  setState(() => _isLoading = true);
+  final db = FirebaseFirestore.instance;
+
+  Map<String, dynamic> commonData = {
+    'name': _nameController.text.trim(),
+    'email': _emailController.text.trim(),
+    'password': _passwordController.text.trim(),
+  };
+
+  try {
+    if (_selectedAccountType == 'Publisher') {
+      DocumentReference docRef = await db.collection('Publisher').add({
+        ...commonData,
+        'apps': {},
+      });
+      
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => PublisherHome(userId: docRef.id)),
+        );
+      }
+    } else if (_selectedAccountType == 'Tester') {
+      DocumentReference docRef = await db.collection('Tester').add({
+        ...commonData,
+        'appsbeingtested': null,
+        'moneyearned': 0,
+      });
+      
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => TesterDashboard(userId: docRef.id)),
+        );
+      }
+    } else if (_selectedAccountType == 'Account Provider') {
+      DocumentReference docRef = await db.collection('AccountOwner').add({
+        'name': _nameController.text.trim(),
+        'useremail': _emailController.text.trim(),
+        'userpassword': _passwordController.text.trim(),
+        'phonenumber': int.tryParse(_phoneController.text.trim()) ?? 0,
+        'googleaccount': {
+          'accountdetails': {
+            'email': '',
+            'password': '',
+          }
+        },
+        'apps': {}, 
+        'moneyearned': 0,
+      });
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AccountOwnerHome(userId: docRef.id)),
+        );
+      }
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Registration Failed: $e")));
+    }
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
+  }
+}
 }
